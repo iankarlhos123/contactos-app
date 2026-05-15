@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laravel 13.x - Aplicación Web de Contactos</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="deck-topbar">
+    <div>
+      <strong>Laravel 13.x</strong>
+      <span>Ruta práctica: app de contactos con MySQL</span>
+    </div>
+    <div class="deck-actions">
+      <button id="overviewBtn" type="button" title="Vista general">Vista</button>
+      <button id="prevBtn" type="button" title="Anterior">Anterior</button>
+      <button id="nextBtn" type="button" title="Siguiente">Siguiente</button>
+    </div>
+  </header>
+
+  <main id="deck" class="deck" aria-live="polite">
+    <section class="slide title-slide">
+      <div class="accent-line"></div>
+      <h1>Aprende Laravel creando una aplicación web de contactos</h1>
+      <p class="lead">Paso a paso, comando a comando y código a código: rutas, controladores, Blade, MySQL, migraciones, Eloquent, CRUD, autenticación, validación, seeders, factories y pruebas.</p>
+      <div class="title-grid">
+        <div>
+          <span class="metric">Laravel 13.x</span>
+          <small>Basado en documentación oficial</small>
+        </div>
+        <div>
+          <span class="metric">MySQL</span>
+          <small>Modelo users - contacts</small>
+        </div>
+        <div>
+          <span class="metric">CRUD</span>
+          <small>Contactos por usuario</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Objetivo</p>
+      <h2>Producto final</h2>
+      <div class="two-col">
+        <div>
+          <p>Construiremos una aplicación Laravel donde cada usuario pueda administrar su propia agenda de contactos.</p>
+          <ul>
+            <li>Registro e inicio de sesión.</li>
+            <li>Listado de contactos del usuario autenticado.</li>
+            <li>Crear y ver contactos; editar y eliminar quedan como reto práctico.</li>
+            <li>Validación de formularios.</li>
+            <li>Datos de prueba con factories y seeders.</li>
+            <li>Pruebas automatizadas del flujo principal.</li>
+          </ul>
+        </div>
+        <div class="model-card">
+          <h3>Modelo relacional</h3>
+          <div class="schema">
+            <div class="table-box">
+              <div class="table-head">users</div>
+              <div>PK id</div>
+              <div>name</div>
+              <div>email</div>
+              <div>password</div>
+            </div>
+            <div class="relation">1 : N</div>
+            <div class="table-box">
+              <div class="table-head">contacts</div>
+              <div>PK id</div>
+              <div>name</div>
+              <div>FK user_id</div>
+              <div>phone_number</div>
+            </div>
+          </div>
+          <p class="note">Un usuario tiene muchos contactos. Un contacto pertenece a un usuario.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Ruta de aprendizaje</p>
+      <h2>contenido</h2>
+      <ol class="timeline">
+        <li>Crear proyecto y configurar MySQL.</li>
+        <li>Entender rutas, controladores y vistas Blade.</li>
+        <li>Crear migraciones y modelos Eloquent.</li>
+        <li>Implementar CRUD de contactos.</li>
+        <li>Agregar autenticación y proteger datos por usuario.</li>
+        <li>Crear factories, seeders y pruebas.</li>
+      </ol>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto base</p>
+      <h2>Que es Laravel?</h2>
+      <div class="two-col">
+        <div>
+          <p>Laravel es un framework de PHP para crear aplicaciones web modernas. Un framework es una base de trabajo que ya trae estructura, herramientas y convenciones para no empezar desde cero.</p>
+          <ul>
+            <li>Organiza el codigo en rutas, controladores, modelos y vistas.</li>
+            <li>Incluye <span class="tooltip" tabindex="0">Eloquent ORM<span class="tooltip-content">ORM significa Object Relational Mapping: una forma de trabajar con tablas de la base de datos usando clases y objetos PHP.</span></span> para trabajar con bases de datos.</li>
+            <li>Trae migraciones, validacion, sesiones, autenticacion, colas, pruebas y comandos.</li>
+            <li>Favorece codigo claro, mantenible y preparado para crecer.</li>
+          </ul>
+        </div>
+        <pre><code>// Ejemplo de una ruta simple en Laravel
+Route::get('/contactos', function () {
+    return 'Listado de contactos';
+});</code></pre>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto base</p>
+      <h2>Que es Artisan?</h2>
+      <p>Artisan es la interfaz de linea de comandos de Laravel. Sirve para crear archivos, ejecutar migraciones, ver rutas, iniciar servidores, limpiar cache y automatizar tareas del proyecto.</p>
+      <div class="grid-2">
+        <pre><code>php artisan list
+php artisan about
+php artisan serve
+php artisan route:list</code></pre>
+        <pre><code>php artisan make:controller ContactController
+php artisan make:model Contact -mfs
+php artisan migrate
+php artisan test</code></pre>
+      </div>
+      <p class="note">Cuando escribes <code>php artisan ...</code>, le estas pidiendo a Laravel que ejecute una tarea especifica.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto base</p>
+      <h2>Que es Tinker?</h2>
+      <p>Tinker es una consola interactiva para ejecutar codigo PHP dentro del contexto real de tu aplicacion Laravel.</p>
+      <div class="two-col">
+        <div>
+          <p>Sirve para probar modelos, consultas, relaciones y datos sin crear una ruta o una vista temporal.</p>
+          <ul>
+            <li>Consultar usuarios y contactos.</li>
+            <li>Crear registros de prueba rapidamente.</li>
+            <li>Verificar relaciones Eloquent.</li>
+          </ul>
+        </div>
+        <pre><code>php artisan tinker
+
+User::count();
+Contact::first();
+auth();</code></pre>
+      </div>
+      <p class="note">En Tinker no hay usuario autenticado por defecto, por eso para probar contactos normalmente se consulta un usuario con <code>User::first()</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto base</p>
+      <h2>Controladores, modelos y migraciones</h2>
+      <div class="grid-3">
+        <article>
+          <h3>Controlador</h3>
+          <p>Es una clase que recibe la peticion, coordina la logica y devuelve una respuesta. En el CRUD, el controlador decide que vista mostrar o que dato guardar.</p>
+          <pre><code>php artisan make:controller ContactController --resource</code></pre>
+        </article>
+        <article>
+          <h3>Modelo</h3>
+          <p>Es una clase que representa una tabla de la base de datos. El modelo <code>Contact</code> representa registros de la tabla <code>contacts</code>.</p>
+          <pre><code>php artisan make:model Contact</code></pre>
+        </article>
+        <article>
+          <h3>Migracion</h3>
+          <p>Es un archivo PHP que define cambios en la estructura de la base de datos, como crear tablas o agregar columnas.</p>
+          <pre><code>php artisan make:migration create_contacts_table</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto base</p>
+      <h2>Factories y seeders</h2>
+      <div class="two-col">
+        <div>
+          <h3>Factories</h3>
+          <p>Definen como fabricar datos falsos para un modelo. Por ejemplo, nombres y telefonos de contactos.</p>
+          <pre><code>Contact::factory()->count(10)->create();</code></pre>
+        </div>
+        <div>
+          <h3>Seeders</h3>
+          <p>Ejecutan instrucciones para llenar la base de datos con informacion inicial o de prueba.</p>
+          <pre><code>php artisan db:seed
+php artisan migrate:fresh --seed</code></pre>
+        </div>
+      </div>
+      <p class="note">En esta app los usaremos para crear usuarios y contactos automaticamente.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Instalacion</p>
+      <h2>Como instalar Laravel</h2>
+      <p>Hay dos formas comunes de crear un proyecto Laravel nuevo.</p>
+      <div class="grid-2">
+        <div>
+          <h3>Laravel Installer</h3>
+          <pre><code>composer global require laravel/installer
+laravel new contactos-app</code></pre>
+          <p>Es comodo para crear proyectos con un asistente interactivo y opciones rapidas.</p>
+        </div>
+        <div>
+          <h3>Composer create-project</h3>
+          <pre><code>composer create-project laravel/laravel contactos-app</code></pre>
+          <p>Usa Composer directamente y no requiere instalar el comando global <code>laravel</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Instalacion</p>
+      <h2><code>laravel new</code> vs <code>composer create-project</code></h2>
+      <table>
+        <thead><tr><th>Comando</th><th>Ventaja</th><th>Cuando usarlo</th></tr></thead>
+        <tbody>
+          <tr><td><code>laravel new contactos-app</code></td><td>Mas guiado y rapido si ya tienes instalado Laravel Installer.</td><td>Cuando crearas varios proyectos Laravel con frecuencia.</td></tr>
+          <tr><td><code>composer create-project laravel/laravel contactos-app</code></td><td>No depende de un instalador global adicional.</td><td>Cuando quieres una forma directa y universal con Composer.</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Ambos crean una aplicacion Laravel. Para este curso se usa <code>composer create-project</code> porque funciona aunque no tengas instalado el comando global <code>laravel</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Requisitos</p>
+      <h2>Herramientas necesarias</h2>
+      <div class="grid-3">
+        <article>
+          <h3>PHP y Composer</h3>
+          <p>Laravel necesita PHP moderno y Composer para instalar dependencias.</p>
+          <pre><code>php -v
+composer -V</code></pre>
+        </article>
+        <article>
+          <h3>Node.js</h3>
+          <p>Se usa para compilar assets de frontend con Vite.</p>
+          <pre><code>node -v
+npm -v</code></pre>
+        </article>
+        <article>
+          <h3>MySQL</h3>
+          <p>Base de datos relacional para guardar usuarios y contactos.</p>
+          <pre><code>mysql --version</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 1</p>
+      <h2>Crear el proyecto Laravel</h2>
+      <p>Desde una carpeta de trabajo, crea el proyecto e ingresa a él.</p>
+      <pre><code>composer create-project laravel/laravel contactos-app
+cd contactos-app</code></pre>
+      <p>Arranca el servidor de desarrollo para comprobar que Laravel funciona.</p>
+      <pre><code>php artisan serve</code></pre>
+      <p class="note">La aplicación quedará normalmente en <code>http://127.0.0.1:8000</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto</p>
+      <h2>Estructura de carpetas de Laravel</h2>
+      <div class="two-col">
+        <ul>
+          <li><code>app</code>: codigo principal de la aplicacion.</li>
+          <li><code>bootstrap</code>: arranque del framework.</li>
+          <li><code>config</code>: archivos de configuracion.</li>
+          <li><code>database</code>: migraciones, factories y seeders.</li>
+          <li><code>public</code>: punto de entrada publico y assets compilados.</li>
+          <li><code>resources</code>: vistas, CSS y JS fuente.</li>
+          <li><code>routes/web.php</code>: rutas web.</li>
+          <li><code>app/Http/Controllers</code>: controladores.</li>
+          <li><code>app/Models</code>: modelos Eloquent.</li>
+          <li><code>database/migrations</code>: estructura de tablas.</li>
+          <li><code>resources/views</code>: vistas Blade.</li>
+          <li><code>database/seeders</code>: datos iniciales.</li>
+          <li><code>tests/Feature</code>: pruebas de comportamiento.</li>
+        </ul>
+        <pre><code>php artisan list
+php artisan about
+php artisan route:list</code></pre>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 2</p>
+      <h2>Configurar MySQL</h2>
+      <p>Crea la base de datos en MySQL.</p>
+      <pre><code>CREATE DATABASE contactos_app
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;</code></pre>
+      <p>Actualiza el archivo <code>.env</code>.</p>
+      <pre><code>DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=contactos_app
+DB_USERNAME=root
+DB_PASSWORD=</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 3</p>
+      <h2>Instalar autenticación</h2>
+      <p>Laravel puede usar <span class="tooltip" tabindex="0">starter kits<span class="tooltip-content">Paquetes iniciales que generan una base funcional para la aplicacion, por ejemplo autenticacion, vistas, rutas y configuracion frontend.</span></span>. Para este curso usaremos Breeze porque genera autenticación simple con Blade.</p>
+      <pre><code>composer require laravel/breeze --dev
+php artisan breeze:install blade
+npm install
+npm run build
+php artisan migrate</code></pre>
+      <p class="note">Breeze crea registro, login, logout, recuperación de contraseña, vistas y rutas de autenticación.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 3b</p>
+      <div class="help-tip" tabindex="0">?<span>Personalizas el dashboard generado por Breeze. Auth::user() obtiene el usuario autenticado y name muestra su nombre dentro de la vista.</span></div>
+      <h2>Personalizar el dashboard</h2>
+      <p>Edita <code>resources/views/dashboard.blade.php</code> para reemplazar el mensaje original de Breeze.</p>
+      <pre><code>&lt;div class="p-6 text-gray-900"&gt;
+    Bienvenid@ a tu lista de contactos, {{ Auth::user()-&gt;name }}.
+&lt;/div&gt;</code></pre>
+      <p class="note">Este mensaje solo se muestra en una ruta protegida, por eso existe un usuario autenticado disponible.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto</p>
+      <h2>Rutas web</h2>
+      <p>Una ruta conecta una URL con una respuesta. Se definen en <code>routes/web.php</code>.</p>
+      <pre><code>use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/saludo', function () {
+    return 'Hola Laravel';
+});</code></pre>
+      <p>Para una aplicación CRUD, Laravel ofrece rutas resource.</p>
+      <pre><code>Route::resource('contacts', ContactController::class);</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto</p>
+      <h2>Controladores resource</h2>
+      <p>Un controlador resource organiza las acciones típicas de un CRUD.</p>
+      <pre><code>php artisan make:controller ContactController --resource</code></pre>
+      <table>
+        <thead><tr><th>Método</th><th>Acción</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>index</code></td><td>GET /contacts</td><td>Listar</td></tr>
+          <tr><td><code>create</code></td><td>GET /contacts/create</td><td>Formulario</td></tr>
+          <tr><td><code>store</code></td><td>POST /contacts</td><td>Guardar</td></tr>
+          <tr><td><code>show</code></td><td>GET /contacts/{contact}</td><td>Detalle</td></tr>
+          <tr><td><code>edit</code></td><td>GET /contacts/{contact}/edit</td><td>Editar</td></tr>
+          <tr><td><code>update</code></td><td>PUT /contacts/{contact}</td><td>Actualizar</td></tr>
+          <tr><td><code>destroy</code></td><td>DELETE /contacts/{contact}</td><td>Eliminar</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 4</p>
+      <div class="help-tip" tabindex="0">?<span>En este paso generas los archivos base del modulo Contact: el modelo representa la tabla, la migracion define su estructura, la factory crea datos falsos, el seeder llena la base de datos y el controlador organiza el CRUD.</span></div>
+      <h2>Crear modelo, migración, factory y seeder</h2>
+      <p>Laravel puede generar varios artefactos relacionados con un solo comando.</p>
+      <pre><code>php artisan make:model Contact -mfs</code></pre>
+      <ul>
+        <li><code>-m</code>: crea migración.</li>
+        <li><code>-f</code>: crea factory.</li>
+        <li><code>-s</code>: crea seeder.</li>
+      </ul>
+      <p>También creamos el controlador resource si no lo hicimos antes.</p>
+      <pre><code>php artisan make:controller ContactController --resource --model=Contact</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 5</p>
+      <div class="help-tip" tabindex="0">?<span>Aqui escribes la estructura real de la tabla contacts. El codigo PHP usa Schema y Blueprint para crear columnas, una clave foranea hacia users y marcas de tiempo.</span></div>
+      <h2>Migración de contacts</h2>
+      <p>Edita la migración generada en <code>database/migrations</code>.</p>
+      <pre><code>use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('contacts', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('phone_number');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('contacts');
+    }
+};</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto</p>
+      <h2>Claves foráneas y borrado en cascada</h2>
+      <p>Esta configuración va en la migración de la tabla <code>contacts</code>, dentro del método <code>up()</code>, en el archivo generado en <code>database/migrations/*_create_contacts_table.php</code>.</p>
+      <pre><code>$table->foreignId('user_id')->constrained()->cascadeOnDelete();</code></pre>
+      <p>El código crea la columna <code>user_id</code> y la convierte en una clave foránea que conecta cada contacto con un registro de la tabla <code>users</code>.</p>
+      <ul>
+        <li><code>foreignId('user_id')</code>: crea una columna entera sin signo compatible con <code>users.id</code>.</li>
+        <li><code>constrained()</code>: asume que apunta a la tabla <code>users</code>.</li>
+        <li><code>cascadeOnDelete()</code>: si se elimina un usuario, se eliminan sus contactos.</li>
+      </ul>
+      <p class="note">Esto traduce el modelo relacional a reglas reales dentro de MySQL: no puede existir un contacto sin usuario, y los contactos quedan asociados al dueño correcto.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 6</p>
+      <div class="help-tip" tabindex="0">?<span>Este paso ejecuta las migraciones para que MySQL tenga las tablas definidas en Laravel. migrate:fresh reconstruye la base de datos en desarrollo y --seed tambien carga datos de prueba.</span></div>
+      <h2>Ejecutar migraciones</h2>
+      <pre><code>php artisan migrate</code></pre>
+      <p>Si estás en desarrollo y necesitas reconstruir todo:</p>
+      <pre><code>php artisan migrate:fresh</code></pre>
+      <p>Más adelante, para reconstruir y sembrar datos de prueba:</p>
+      <pre><code>php artisan migrate:fresh --seed</code></pre>
+      <p class="warning">No uses <code>migrate:fresh</code> en producción porque elimina las tablas.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 7</p>
+      <div class="help-tip" tabindex="0">?<span>Este codigo define el modelo Contact. HasFactory permite usar factories, fillable indica que campos se pueden guardar masivamente y user() declara que cada contacto pertenece a un usuario.</span></div>
+      <h2>Modelo Contact</h2>
+      <p>Edita <code>app/Models/Contact.php</code>.</p>
+      <pre><code>namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Contact extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'phone_number',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+}</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 8</p>
+      <div class="help-tip" tabindex="0">?<span>Agregas la relacion inversa en User. El metodo contacts() se escribe en el modelo User; luego puedes probarlo en Tinker o usarlo en el controlador para crear contactos asociados al usuario autenticado.</span></div>
+      <h2>Relación en User</h2>
+      <p>Edita <code>app/Models/User.php</code> y agrega la relación.</p>
+      <pre><code>use Illuminate\Database\Eloquent\Relations\HasMany;
+
+public function contacts(): HasMany
+{
+    return $this->hasMany(Contact::class);
+}</code></pre>
+      <p>Ese método se configura en el modelo <code>User</code>. Le dice a Laravel que un usuario puede tener muchos contactos.</p>
+      <p>Para probar la relación en <strong>Tinker</strong>, primero toma un usuario existente y luego crea un contacto desde esa relación:</p>
+      <pre><code>$user = App\Models\User::first();
+
+$user->contacts()->create([
+    'name' => 'Ana Gomez',
+    'phone_number' => '3001234567',
+]);</code></pre>
+      <p>En la aplicación final, este mismo concepto se usa normalmente en el controlador, porque allí sí existe un usuario autenticado:</p>
+      <pre><code>auth()->user()->contacts()->create([
+    'name' => 'Ana Gomez',
+    'phone_number' => '3001234567',
+]);</code></pre>
+      <p class="note">No se escribe <code>user_id</code> en el arreglo porque Laravel lo completa usando la relación <code>contacts()</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto</p>
+      <h2><span class="tooltip tooltip-below" tabindex="0">Eloquent ORM<span class="tooltip-content">ORM significa Object Relational Mapping: una forma de consultar, crear, actualizar y eliminar filas de una base de datos usando modelos PHP en lugar de escribir SQL manual todo el tiempo.</span></span></h2>
+      <p>Eloquent permite trabajar con tablas usando objetos PHP.</p>
+      <div class="grid-2">
+        <pre><code>// SQL mental:
+SELECT * FROM contacts
+WHERE user_id = 1;</code></pre>
+        <pre><code>// Eloquent:
+$contacts = auth()
+    ->user()
+    ->contacts()
+    ->latest()
+    ->get();</code></pre>
+      </div>
+      <ul>
+        <li><code>auth()</code>: accede al sistema de autenticación de Laravel.</li>
+        <li><code>user()</code>: obtiene el usuario que inició sesión.</li>
+        <li><code>contacts()</code>: usa la relación definida en el modelo <code>User</code> para consultar solo sus contactos.</li>
+        <li><code>latest()</code>: ordena los contactos del más reciente al más antiguo usando <code>created_at</code>.</li>
+        <li><code>get()</code>: ejecuta la consulta y devuelve la colección de contactos.</li>
+      </ul>
+      <p>El resultado queda guardado en <code>$contacts</code> para enviarlo a una vista y mostrarlo con Blade.</p>
+      <p class="note">La idea clave: el modelo representa una fila y las relaciones representan vínculos entre tablas.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 9</p>
+      <div class="help-tip" tabindex="0">?<span>Registras las rutas del CRUD dentro del middleware auth. El codigo protege contacts para que solo usuarios autenticados puedan acceder y carga las rutas de autenticacion generadas por Breeze.</span></div>
+      <h2>Registrar rutas protegidas</h2>
+      <p>Edita <code>routes/web.php</code>.</p>
+      <pre><code>use App\Http\Controllers\ContactController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('auth.login');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::resource('contacts', ContactController::class);
+});
+
+require __DIR__.'/auth.php';</code></pre>
+      <p class="note">El middleware <code>auth</code> exige que el usuario haya iniciado sesión.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 10</p>
+      <div class="help-tip" tabindex="0">?<span>Creas la accion index del controlador. El codigo toma el usuario autenticado, consulta solo sus contactos, los ordena del mas reciente al mas antiguo y los pagina de 5 en 5.</span></div>
+      <h2>Método index + vista contacts.index</h2>
+      <p>Edita <code>app/Http/Controllers/ContactController.php</code>.</p>
+      <pre><code>namespace App\Http\Controllers;
+
+use App\Models\Contact;
+use Illuminate\Http\Request;
+
+class ContactController extends Controller
+{
+    public function index(Request $request)
+    {
+        $contacts = $request->user()
+            ->contacts()
+            ->latest()
+            ->paginate(5);
+
+        return view('contacts.index', compact('contacts'));
+    }
+}</code></pre>
+      <p class="note">El ajuste importante fue recibir <code>Request $request</code>; sin ese parametro, <code>$request-&gt;user()</code> falla dentro de <code>index()</code>.</p>
+      <p>Vista asociada: <code>resources/views/contacts/index.blade.php</code>. Esta vista recibe <code>$contacts</code>, muestra la tabla y renderiza <code>{{ $contacts-&gt;links() }}</code>.</p>
+      <pre><code>&lt;a href="{{ route('contacts.create') }}" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"&gt;
+    Nuevo contacto
+&lt;/a&gt;</code></pre>
+      <pre><code>@foreach ($contacts as $contact)
+    &lt;tr&gt;
+        &lt;td&gt;
+            &lt;a href="{{ route('contacts.show', $contact) }}"&gt;
+                {{ $contact-&gt;name }}
+            &lt;/a&gt;
+        &lt;/td&gt;
+        &lt;td&gt;{{ $contact-&gt;phone_number }}&lt;/td&gt;
+        &lt;td&gt;{{ $contact-&gt;created_at-&gt;format('d/m/Y') }}&lt;/td&gt;
+    &lt;/tr&gt;
+@endforeach
+
+{{ $contacts-&gt;links() }}</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 11</p>
+      <div class="help-tip" tabindex="0">?<span>El metodo create no guarda datos. Solo muestra el formulario de creacion. La vista asociada es contacts.create.</span></div>
+      <h2>Método create + vista contacts.create</h2>
+      <pre><code>public function create()
+{
+    return view('contacts.create');
+}</code></pre>
+      <p>Vista asociada: <code>resources/views/contacts/create.blade.php</code>.</p>
+      <pre><code>&lt;x-app-layout&gt;
+    &lt;x-slot name="header"&gt;
+        &lt;h2 class="font-semibold text-xl text-gray-800"&gt;Nuevo contacto&lt;/h2&gt;
+    &lt;/x-slot&gt;
+
+    &lt;div class="py-12"&gt;
+        &lt;div class="max-w-3xl mx-auto sm:px-6 lg:px-8"&gt;
+            &lt;div class="bg-white overflow-hidden shadow-sm sm:rounded-lg"&gt;
+                &lt;form method="POST" action="{{ route('contacts.store') }}" class="space-y-6 p-6"&gt;
+                    @csrf
+
+                    @include('contacts._form')
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/x-app-layout&gt;</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 12</p>
+      <div class="help-tip" tabindex="0">?<span>El metodo store procesa el formulario. No tiene vista propia: valida, crea el contacto y redirige al listado.</span></div>
+      <h2>Método store + redirección</h2>
+      <pre><code>public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'phone_number' => ['required', 'string', 'max:255'],
+    ], [
+        'name.required' => 'El nombre es obligatorio.',
+        'name.string' => 'El nombre debe ser texto.',
+        'name.max' => 'El nombre no puede tener más de 255 caracteres.',
+        'phone_number.required' => 'El número de teléfono es obligatorio.',
+        'phone_number.string' => 'El número de teléfono debe ser texto.',
+        'phone_number.max' => 'El número de teléfono no puede tener más de 255 caracteres.',
+    ]);
+
+    $request->user()->contacts()->create($validated);
+
+    return redirect()
+            ->route('contacts.index')
+        ->with('status', 'Contacto creado correctamente.');
+}</code></pre>
+      <p class="note">Vista asociada indirecta: después de guardar vuelve a <code>contacts.index</code>.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 13</p>
+      <div class="help-tip" tabindex="0">?<span>Agregas una verificacion de propiedad. El metodo abort_unless detiene la peticion con error 403 si el contacto no pertenece al usuario autenticado.</span></div>
+      <h2>Helper de autorización</h2>
+      <p>Antes de mostrar, editar, actualizar o eliminar, verifica que el contacto pertenezca al usuario autenticado.</p>
+      <pre><code>private function authorizeContact(Request $request, Contact $contact): void
+{
+    abort_unless($contact->user_id === $request->user()->id, 403);
+}</code></pre>
+      <p>Uso en las acciones:</p>
+      <pre><code>public function show(Request $request, Contact $contact)
+{
+    $this->authorizeContact($request, $contact);
+
+    return view('contacts.show', compact('contact'));
+}</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 14</p>
+      <div class="help-tip" tabindex="0">?<span>El metodo show muestra un solo contacto. Antes de devolver la vista, verifica que el contacto pertenezca al usuario autenticado.</span></div>
+      <h2>Método show + vista contacts.show</h2>
+      <pre><code>public function show(Request $request, Contact $contact)
+{
+    $this-&gt;authorizeContact($request, $contact);
+
+    return view('contacts.show', compact('contact'));
+}</code></pre>
+      <p>Vista asociada: <code>resources/views/contacts/show.blade.php</code>.</p>
+      <pre><code>&lt;h2 class="font-semibold text-xl text-gray-800 leading-tight"&gt;
+    {{ $contact-&gt;name }}
+&lt;/h2&gt;
+
+&lt;dl class="divide-y divide-gray-200"&gt;
+    &lt;div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4"&gt;
+        &lt;dt&gt;Nombre&lt;/dt&gt;
+        &lt;dd&gt;{{ $contact-&gt;name }}&lt;/dd&gt;
+    &lt;/div&gt;
+    &lt;div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4"&gt;
+        &lt;dt&gt;Telefono&lt;/dt&gt;
+        &lt;dd&gt;{{ $contact-&gt;phone_number }}&lt;/dd&gt;
+    &lt;/div&gt;
+&lt;/dl&gt;</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 15</p>
+      <div class="help-tip" tabindex="0">?<span>Este paso queda como reto practico. La vista edit reutiliza el parcial contacts._form y envia el formulario a contacts.update usando @method('PUT').</span></div>
+      <h2>Reto: método edit + vista contacts.edit</h2>
+      <p>El método <code>edit</code> del controlador queda para que los aprendices lo implementen. La vista propuesta es <code>resources/views/contacts/edit.blade.php</code>.</p>
+      <pre><code>&lt;x-app-layout&gt;
+    &lt;x-slot name="header"&gt;
+        &lt;h2 class="font-semibold text-xl text-gray-800 leading-tight"&gt;
+            Editar contacto
+        &lt;/h2&gt;
+    &lt;/x-slot&gt;
+
+    &lt;div class="py-12"&gt;
+        &lt;div class="max-w-3xl mx-auto sm:px-6 lg:px-8"&gt;
+            &lt;div class="bg-white overflow-hidden shadow-sm sm:rounded-lg"&gt;
+                &lt;form method="POST" action="{{ route('contacts.update', $contact) }}" class="space-y-6 p-6"&gt;
+                    @csrf
+                    @method('PUT')
+
+                    @include('contacts._form', ['contact' =&gt; $contact])
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/x-app-layout&gt;</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 16</p>
+      <div class="help-tip" tabindex="0">?<span>Este metodo queda como reto. Debe validar los mismos campos de store, actualizar el contacto y redirigir al listado.</span></div>
+      <h2>Reto: método update + redirección</h2>
+      <p>No tiene vista propia. Debe recibir el formulario de <code>contacts.edit</code>, validar <code>name</code> y <code>phone_number</code>, actualizar el contacto y volver a <code>contacts.index</code>.</p>
+      <pre><code>// Reto para aprendices:
+// 1. Recibir Request y Contact.
+// 2. Verificar propiedad con authorizeContact().
+// 3. Validar name y phone_number.
+// 4. Ejecutar $contact-&gt;update($validated).
+// 5. Redirigir a contacts.index con mensaje de estado.</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 17</p>
+      <div class="help-tip" tabindex="0">?<span>Este metodo queda como reto. Debe eliminar un contacto propio del usuario autenticado y volver al listado.</span></div>
+      <h2>Reto: método destroy + redirección</h2>
+      <p>No tiene vista propia. Debe responder a una petición <code>DELETE</code>, verificar que el contacto pertenezca al usuario autenticado, eliminarlo y redirigir a <code>contacts.index</code>.</p>
+      <pre><code>// Reto para aprendices:
+// 1. Recibir Request y Contact.
+// 2. Verificar propiedad con authorizeContact().
+// 3. Ejecutar $contact-&gt;delete().
+// 4. Redirigir a contacts.index con mensaje de estado.</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 19</p>
+      <div class="help-tip" tabindex="0">?<span>Agregas el enlace al menu principal para entrar al listado sin escribir /contacts manualmente. Tambien se marca activo cuando la ruta actual pertenece al modulo contacts.</span></div>
+      <h2>Navegacion: enlace a Contactos</h2>
+      <p>Edita <code>resources/views/layouts/navigation.blade.php</code>.</p>
+      <pre><code>&lt;x-nav-link :href="route('contacts.index')" :active="request()-&gt;routeIs('contacts.*')"&gt;
+    {{ __('Contactos') }}
+&lt;/x-nav-link&gt;</code></pre>
+      <p>En el menu movil se agrega el mismo enlace usando el componente responsive:</p>
+      <pre><code>&lt;x-responsive-nav-link :href="route('contacts.index')" :active="request()-&gt;routeIs('contacts.*')"&gt;
+    {{ __('Contactos') }}
+&lt;/x-responsive-nav-link&gt;</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Paso 20</p>
+      <div class="help-tip" tabindex="0">?<span>Creas un formulario parcial reutilizable. old() conserva lo escrito si hay errores, el operador ?? permite usar valores existentes al editar y @error muestra mensajes de validacion.</span></div>
+      <h2>Componente parcial: formulario</h2>
+      <p>Crea <code>resources/views/contacts/_form.blade.php</code> para reutilizarlo en crear y editar.</p>
+      <pre><code>&lt;div&gt;
+    &lt;label for="name" class="block text-sm font-medium text-gray-700"&gt;Nombre&lt;/label&gt;
+    &lt;input
+        id="name"
+        name="name"
+        type="text"
+        value="{{ old('name', $contact-&gt;name ?? '') }}"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        required
+    &gt;
+    @error('name')
+        &lt;p class="mt-2 text-sm text-red-600"&gt;{{ $message }}&lt;/p&gt;
+    @enderror
+&lt;/div&gt;
+
+&lt;div&gt;
+    &lt;label for="phone_number" class="block text-sm font-medium text-gray-700"&gt;Telefono&lt;/label&gt;
+    &lt;input
+        id="phone_number"
+        name="phone_number"
+        type="text"
+        value="{{ old('phone_number', $contact-&gt;phone_number ?? '') }}"
+        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        required
+    &gt;
+    @error('phone_number')
+        &lt;p class="mt-2 text-sm text-red-600"&gt;{{ $message }}&lt;/p&gt;
+    @enderror
+&lt;/div&gt;
+
+&lt;div class="flex items-center gap-4"&gt;
+    &lt;button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"&gt;
+        Guardar
+    &lt;/button&gt;
+
+    &lt;a href="{{ route('contacts.index') }}" class="text-sm font-medium text-gray-600 hover:text-gray-900"&gt;
+        Cancelar
+    &lt;/a&gt;
+&lt;/div&gt;</code></pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Concepto</p>
+      <h2>Validación</h2>
+      <p>La validación evita guardar datos incompletos o peligrosos.</p>
+      <pre><code>$validated = $request->validate([
+    'name' => ['required', 'string', 'max:255'],
+    'phone_number' => ['required', 'string', 'max:255'],
+]);</code></pre>
+      <ul>
+        <li><code>required</code>: el campo es obligatorio.</li>
+        <li><code>string</code>: debe ser texto.</li>
+        <li><code>max:255</code>: limita el tamaño para coincidir con <code>VARCHAR(255)</code>.</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Apoyo</p>
+      <div class="help-tip" tabindex="0">?<span>Esta diapositiva te ayuda a diagnosticar fallos comunes. Relaciona el mensaje de error con su causa probable y la accion concreta para corregirlo.</span></div>
+      <h2>Errores frecuentes</h2>
+      <table>
+        <thead><tr><th>Error</th><th>Causa común</th><th>Solución</th></tr></thead>
+        <tbody>
+          <tr><td>Access denied for user</td><td>Credenciales MySQL incorrectas</td><td>Revisar <code>.env</code></td></tr>
+          <tr><td>Class not found</td><td>Namespace o import faltante</td><td>Revisar <code>use App\Models\Contact;</code></td></tr>
+          <tr><td>419 Page Expired</td><td>Formulario sin CSRF</td><td>Agregar <code>@csrf</code></td></tr>
+          <tr><td>403 Forbidden</td><td>Contacto no pertenece al usuario</td><td>Verificar datos y autorización</td></tr>
+          <tr><td>Table doesn't exist</td><td>Migraciones no ejecutadas</td><td><code>php artisan migrate</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="slide title-slide">
+      <div class="accent-line"></div>
+      <p class="eyebrow">Cierre</p>
+      <h2>Estado actual del proyecto</h2>
+      <p class="lead">Tenemos una aplicación Laravel de contactos con autenticación, dashboard personalizado, rutas protegidas y contactos asociados al usuario autenticado.</p>
+      <ul class="checklist">
+        <li>Laravel Breeze instalado con vistas Blade.</li>
+        <li>Base de datos MySQL configurada con tablas <code>users</code> y <code>contacts</code>.</li>
+        <li>Modelos <code>User</code> y <code>Contact</code> relacionados con Eloquent.</li>
+        <li>Listado paginado de contactos en <code>contacts.index</code>.</li>
+        <li>Formulario de creación con validación y mensajes personalizados.</li>
+        <li>Vista de detalle en <code>contacts.show</code>.</li>
+        <li>Navegación principal con enlace a Contactos.</li>
+        <li>Retos pendientes: factory, seeders, usuario demo, <code>edit</code>, <code>update</code> y <code>destroy</code>.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="deck-footer">
+    <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+    <span id="slideCounter">1 / 1</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
