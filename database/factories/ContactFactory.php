@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Contact;
+use App\Models\user;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,7 +18,9 @@ class ContactFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+             'name' => fake()->name(),
+             'phone_number' => fake()->numerify('3#########'),
+             'user_id' => User::factory(),
         ];
     }
 }
